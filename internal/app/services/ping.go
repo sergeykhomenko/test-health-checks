@@ -3,11 +3,17 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/sergeykhomenko/test-health-checks/internal/types"
+	"log/slog"
 	"net/http"
 	"time"
 )
+
+var requestTimeout int
+
+func SetPingbackTimeout(timeout int) {
+	requestTimeout = timeout
+}
 
 func PingUrl(ctx context.Context, url string, resultCh chan types.PingReport) {
 	status := getStatusForUrl(url)
@@ -15,7 +21,7 @@ func PingUrl(ctx context.Context, url string, resultCh chan types.PingReport) {
 	for {
 		select {
 		case <-ctx.Done():
-			// todo: here can be debug information about cancelling
+			slog.Debug("Skipped ping for " + url + " due to context cancel")
 			return
 		default:
 			resultCh <- types.PingReport{
@@ -28,13 +34,13 @@ func PingUrl(ctx context.Context, url string, resultCh chan types.PingReport) {
 }
 
 func getStatusForUrl(url string) types.PingStatus {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*600)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(requestTimeout))
 
 	defer cancel()
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		fmt.Println("Cant create a request with timeout for", url)
+		slog.Warn("Cant create a request with timeout for " + url)
 	}
 
 	res, err := http.DefaultClient.Do(request)
@@ -43,7 +49,7 @@ func getStatusForUrl(url string) types.PingStatus {
 	}
 
 	if err != nil {
-		fmt.Println("Error when making request for", url, err.Error())
+		slog.Info("Error when making request for "+url, slog.String("error", err.Error()))
 		return types.PingStatusError
 	}
 

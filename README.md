@@ -6,6 +6,8 @@
 
 **timeout** - request timeout in milliseconds. Urls that responds longer than this time would be returned with `timeout` status
 
+**debug** - set to run in debug mode
+
 ## Build
 
 1. Try to build or run using default `go run ./cmd/server/main.go --port=8000 --timeout=5000`
@@ -14,11 +16,20 @@
 ## Build with Docker
 
 1. Run docker ???
+2. Build the image
+```shell
+docker build -t test-health-checks:latest .
+```
+3. Run the image you just created. 
+```shell
+docker run -it --rm -p 127.0.0.1:8000:8000 test-health-checks:latest
+```
+4. If you need to adjust run parameters, you can do it changing dockerfile for now
 
 ## Run
 
 ```http request
-POST http://localhost:8000/ping-urls 
+POST http://127.0.0.1:8000/ping-urls 
 
 {
     "urls": [

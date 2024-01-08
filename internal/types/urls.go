@@ -1,7 +1,7 @@
 package types
 
 type UrlsDto struct {
-	Urls     []string `json:"urls" binding:"required,unique"`
+	Urls     []string `json:"urls" binding:"required,unique,dive,url"`
 	Strategy string   `json:"strategy" binding:"required,oneof=first_to_fall at_least_one"`
 }
 
